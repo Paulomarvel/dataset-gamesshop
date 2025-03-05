@@ -1,0 +1,94 @@
+1) Leitura e unificação dos dados
+python
+Copiar
+Editar
+import pandas as pd
+
+# 1. Ler cada CSV em um dataframe
+df_aliexpress = pd.read_csv("Meganium_Sales_Data_-_AliExpress.csv")
+df_etsy       = pd.read_csv("Meganium_Sales_Data_-_Etsy.csv")
+df_shopee     = pd.read_csv("Meganium_Sales_Data_-_Shopee.csv")
+
+# 2. Unificar os dataframes em um só
+df = pd.concat([df_aliexpress, df_etsy, df_shopee], ignore_index=True)
+
+# 3. (Opcional) Verificar se as colunas estão padronizadas
+# Se houver diferenças de nome, use df.rename(columns={...}, inplace=True) conforme necessário.
+2) Encontrar o produto mais vendido e sua quantidade total
+python
+
+# Agrupar por product_sold e somar as quantidades
+grouped_products = df.groupby('product_sold')['quantity'].sum()
+
+# Identificar o produto com a maior soma
+top_product = grouped_products.idxmax()
+top_quantity = grouped_products.max()
+
+print("Produto mais vendido:", top_product)
+print("Quantidade total vendida:", top_quantity)
+Resultado:
+
+top_product contém o nome do produto mais vendido.
+top_quantity contém a soma total de vendas desse produto.
+3) Calcular o percentual de cada produto dentro de cada país de entrega
+Para cada delivery_country, vamos descobrir o total de vendas e depois o percentual de cada produto em relação a esse total:
+
+python
+
+# Agrupa por país e produto, somando as quantidades
+country_product = df.groupby(['delivery_country', 'product_sold'])['quantity'].sum().reset_index()
+
+# Total por país
+country_total = df.groupby('delivery_country')['quantity'].sum().reset_index()
+country_total.columns = ['delivery_country', 'total_country']
+
+# Juntar as duas informações
+merged = pd.merge(country_product, country_total, on='delivery_country')
+
+# Calcular o percentual
+merged['percent'] = (merged['quantity'] / merged['total_country']) * 100
+
+# (Opcional) Arredondar o valor do percentual
+merged['percent'] = merged['percent'].round(2)
+
+# Exibir o resultado
+print(merged.head(20))  # mostra apenas as primeiras 20 linhas, por exemplo
+Resultado:
+No dataframe merged, cada linha representa um par (delivery_country, product_sold) com:
+
+quantity: quantidade vendida do produto naquele país
+total_country: total de vendas naquele país
+percent: percentual que esse produto representa no total do país
+4) Determinar qual site obteve o maior volume de vendas
+python
+
+site_sales = df.groupby('site')['quantity'].sum()
+top_site = site_sales.idxmax()
+top_site_quantity = site_sales.max()
+
+print("Site com maior volume de vendas:", top_site)
+print("Quantidade total vendida nesse site:", top_site_quantity)
+Resultado:
+
+top_site será o nome do site (AliExpress, Etsy ou Shopee) que mais vendeu.
+top_site_quantity será a soma total de vendas nesse site.
+5) Verificar qual país (delivery_country) teve mais vendas
+python
+
+
+country_sales = df.groupby('delivery_country')['quantity'].sum()
+top_country = country_sales.idxmax()
+top_country_quantity = country_sales.max()
+
+print("País com mais vendas:", top_country)
+print("Quantidade total vendida nesse país:", top_country_quantity)
+Resultado:
+
+top_country é o país que mais comprou.
+top_country_quantity é a soma total de vendas nesse país.
+Resumo
+Produto mais vendido: agrupar por product_sold e somar quantity.
+Percentual de cada produto por país: agrupar por (delivery_country, product_sold) e dividir pelo total de cada país.
+Site com maior volume: agrupar por site e somar quantity.
+País com mais vendas: agrupar por delivery_country e somar quantity.
+Esse fluxo cobre exatamente o que você solicitou. Basta ajustar nomes de colunas caso sejam diferentes nos arquivos originais. Depois de rodar esse código, você terá todas as respostas.
